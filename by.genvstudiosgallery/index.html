@@ -28,7 +28,7 @@
     <link rel="apple-touch-icon" href="favicons/favicons-apple-touch-icon-72x72.png" sizes="72x72">
     <link rel="canonical" href="https://by.genvstudiosgallery.com/">
     <meta name="generator" content="Astro v5.13.3">
-    <title>by.genvstudiosgallery</title>
+    <title>BY.GENVSTUDIOSGALLERY</title>
     <link rel="stylesheet" href="css/_astro-_id_.BvWqV5aM.css">
     <style>
       #audio-player-container {
@@ -48,7 +48,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: width 0.3s, border-radius 0.3s, background 0.3s;
+        transition: width 0.3s, border-radius 0.3s, background 0.3s, padding 0.3s;
         overflow: hidden;
         padding: 0;
       }
@@ -57,32 +57,44 @@
         border-radius: 24px;
         background: rgba(238,238,238,0.98);
         justify-content: flex-start;
-        padding-left: 12px;
+        padding-left: 0;
+      }
+      #audio-player-container.expanded #audio-toggle {
+        display: flex;
+        align-items: center;
       }
       #audio-icon {
         flex-shrink: 0;
         margin-right: 8px;
-        transition: margin 0.3s;
+        transition: margin 0.3s, opacity 0.3s;
       }
       #audio-player-container:not(.expanded) #audio-icon {
         margin-right: 0;
+        opacity: 1;
+      }
+      #audio-player-container.expanded #audio-icon {
+        opacity: 0;
+        pointer-events: none;
       }
       #audio-controls {
         display: none;
-        width: 160px;
-        margin-left: 8px;
+        flex: 1 1 auto;
+        width: 100%;
+        margin-left: 0;
         background: none;
         box-shadow: none;
         padding: 0;
       }
       #audio-player-container.expanded #audio-controls {
         display: block;
+        width: 100%;
       }
       #main-audio {
         width: 100%;
         outline: none;
         border: none;
         background: none;
+        display: block;
       }
       #main-audio::-webkit-media-controls-enclosure {
         overflow: hidden;
@@ -93,55 +105,118 @@
       #main-audio::-webkit-media-controls-download-button {
         display: none !important;
       }
+      #main-audio::-moz-media-controls-download-button {
+        display: none !important;
+      }
+      #main-audio::-ms-media-controls-download-button {
+        display: none !important;
+      }
+      #main-audio[controls]::part(download-button) {
+        display: none !important;
+      }
+      #music-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s;
+      }
+      #music-overlay .overlay-content {
+        background: rgba(255,255,255,0.95);
+        border-radius: 24px;
+        padding: 32px 40px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      #music-overlay .overlay-content button {
+        background: #222;
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 32px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        transition: background 0.2s;
+      }
+      #music-overlay .overlay-content button:hover {
+        background: #444;
+      }
     </style>
   </head>
   <body data-barba="wrapper" aria-live="polite">
-        <div id="audio-player-container">
-          <button id="audio-toggle" aria-label="Play music">
-            <svg id="audio-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#eee"/><polygon points="9,8 17,12 9,16" fill="#333"/></svg>
-            <span id="audio-controls">
-              <audio id="main-audio" src="audio/MMS.mp3" autoplay loop controls>
-                Your browser does not support the audio element.
-              </audio>
-            </span>
-          </button>
-        </div>
-        <script>
-          const audioPlayerContainer = document.getElementById('audio-player-container');
-          const audioToggle = document.getElementById('audio-toggle');
-          const audioControls = document.getElementById('audio-controls');
-          const mainAudio = document.getElementById('main-audio');
-          let isPlaying = true;
-          audioToggle.addEventListener('mouseenter', () => {
-            audioPlayerContainer.classList.add('expanded');
-          });
-          audioToggle.addEventListener('mouseleave', () => {
+    <div id="music-overlay">
+      <div class="overlay-content">
+        <div style="font-size:1.2rem;font-weight:500;">Start music to complement the visuals?</div>
+        <button id="start-music-btn">Play Music</button>
+        <div style="font-size:0.95rem;color:#666;">You can pause or mute anytime.</div>
+      </div>
+    </div>
+    <div id="audio-player-container">
+      <button id="audio-toggle" aria-label="Play music">
+        <svg id="audio-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#eee"/><polygon points="9,8 17,12 9,16" fill="#333"/></svg>
+        <span id="audio-controls">
+          <audio id="main-audio" src="audio/MMS.mp3" loop controls>
+            Your browser does not support the audio element.
+          </audio>
+        </span>
+      </button>
+    </div>
+    <script>
+      const audioPlayerContainer = document.getElementById('audio-player-container');
+      const audioToggle = document.getElementById('audio-toggle');
+      const audioControls = document.getElementById('audio-controls');
+      const mainAudio = document.getElementById('main-audio');
+      let isPlaying = false;
+      // Make both play buttons functional
+      function playOrPauseMusic() {
+        if (mainAudio.paused) {
+          mainAudio.play();
+          isPlaying = true;
+        } else {
+          mainAudio.pause();
+          isPlaying = false;
+        }
+        document.getElementById('audio-icon').innerHTML = isPlaying
+          ? '<circle cx="12" cy="12" r="12" fill="#eee"/><polygon points="9,8 17,12 9,16" fill="#333"/>'
+          : '<circle cx="12" cy="12" r="12" fill="#eee"/><rect x="9" y="8" width="6" height="8" fill="#333"/>';
+      }
+      audioToggle.addEventListener('mouseenter', () => {
+        audioPlayerContainer.classList.add('expanded');
+      });
+      audioToggle.addEventListener('mouseleave', () => {
+        audioPlayerContainer.classList.remove('expanded');
+      });
+      audioPlayerContainer.addEventListener('mouseleave', () => {
+        audioPlayerContainer.classList.remove('expanded');
+      });
+      audioToggle.addEventListener('click', playOrPauseMusic);
+      // For mobile: tap to expand controls
+      audioToggle.addEventListener('touchstart', () => {
+        audioPlayerContainer.classList.add('expanded');
+      });
+      // Overlay logic
+      const musicOverlay = document.getElementById('music-overlay');
+      const startMusicBtn = document.getElementById('start-music-btn');
+      startMusicBtn.addEventListener('click', () => {
+        playOrPauseMusic();
+        musicOverlay.style.opacity = '0';
+        setTimeout(() => {
+          musicOverlay.style.display = 'none';
+          audioPlayerContainer.classList.add('expanded');
+          setTimeout(() => {
             audioPlayerContainer.classList.remove('expanded');
-          });
-          audioPlayerContainer.addEventListener('mouseleave', () => {
-            audioPlayerContainer.classList.remove('expanded');
-          });
-          audioToggle.addEventListener('click', () => {
-            if (mainAudio.paused) {
-              mainAudio.play();
-              isPlaying = true;
-            } else {
-              mainAudio.pause();
-              isPlaying = false;
-            }
-            document.getElementById('audio-icon').innerHTML = isPlaying
-              ? '<circle cx="12" cy="12" r="12" fill="#eee"/><polygon points="9,8 17,12 9,16" fill="#333"/>'
-              : '<circle cx="12" cy="12" r="12" fill="#eee"/><rect x="9" y="8" width="6" height="8" fill="#333"/>';
-          });
-          // For mobile: tap to expand controls
-          audioToggle.addEventListener('touchstart', () => {
-            audioPlayerContainer.classList.add('expanded');
-          });
-          // Ensure autoplay on page load
-          window.addEventListener('DOMContentLoaded', () => {
-            mainAudio.play();
-          });
-        </script>
+          }, 1200);
+        }, 300);
+      });
+    </script>
     <div class="c-loading">
       <div class="c-loading__box">
         <div class="c-loading__icon" style="width:80px;">
